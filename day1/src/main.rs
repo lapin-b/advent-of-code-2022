@@ -1,3 +1,4 @@
+use itertools::Itertools;
 
 fn main() -> anyhow::Result<()>{
     let file_name = match std::env::args().nth(1) {
@@ -21,6 +22,7 @@ fn main() -> anyhow::Result<()>{
         .collect::<Vec<_>>();
 
     part1(&elf_inventories);
+    part2(&elf_inventories);
 
     Ok(())
 }
@@ -28,7 +30,7 @@ fn main() -> anyhow::Result<()>{
 fn part1(elf_inventories: &[Vec<i32>]){
     let summed_calories = elf_inventories
         .iter()
-        .map(|elf_inventory| elf_inventory.iter().sum::<i32>())
+        .map(sum_elf_inventory)
         .collect::<Vec<_>>();
 
     let max_calories = summed_calories
@@ -37,4 +39,23 @@ fn part1(elf_inventories: &[Vec<i32>]){
         .expect("No max calories found. Is the vector empty ?");
 
     println!("The elf with the most calories is carrying {} cal.", max_calories);
+}
+
+fn part2(elf_inventories: &[Vec<i32>]) {
+    let top3 = elf_inventories
+        .iter()
+        .map(sum_elf_inventory)
+        .sorted_by(|a, b| b.cmp(a))
+        .take(3)
+        .collect::<Vec<_>>();
+
+    println!("Top 3 elves carrying most calories: {:?}", top3);
+
+    let sum = top3.into_iter().sum::<i32>();
+
+    println!("Sum of top 3 elves: {}", sum);
+}
+
+fn sum_elf_inventory(inventory: &Vec<i32>) -> i32 {
+    inventory.iter().sum()
 }
