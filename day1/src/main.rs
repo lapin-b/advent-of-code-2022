@@ -1,3 +1,4 @@
+use anyhow::Context;
 use itertools::Itertools;
 
 fn main() -> anyhow::Result<()>{
@@ -21,41 +22,22 @@ fn main() -> anyhow::Result<()>{
         })
         .collect::<Vec<_>>();
 
-    part1(&elf_inventories);
-    part2(&elf_inventories);
 
-    Ok(())
-}
-
-fn part1(elf_inventories: &[Vec<i32>]){
-    let summed_calories = elf_inventories
+    let top_3 = elf_inventories
         .iter()
-        .map(sum_elf_inventory)
-        .collect::<Vec<_>>();
-
-    let max_calories = summed_calories
-        .iter()
-        .max()
-        .expect("No max calories found. Is the vector empty ?");
-
-    println!("The elf with the most calories is carrying {} cal.", max_calories);
-}
-
-fn part2(elf_inventories: &[Vec<i32>]) {
-    let top3 = elf_inventories
-        .iter()
-        .map(sum_elf_inventory)
+        .map(|inventory| inventory.iter().sum::<i32>())
+        // Part 2 wants the top 3 amount of calories among the elf inventories
         .sorted_by(|a, b| b.cmp(a))
         .take(3)
-        .collect::<Vec<_>>();
+        .collect_vec();
 
-    println!("Top 3 elves carrying most calories: {:?}", top3);
+    // Part 1 wants the max calories among the elf inventories
+    let elf_inventory_max_calories = top_3.get(0).copied().context("No elf with largest inventory")?;
+    let elf_inventory_top3_calories = top_3.iter().sum::<i32>();
 
-    let sum = top3.into_iter().sum::<i32>();
+    println!("Top 3 elf inventories carrying the largest amount of calories: {:?}", top_3);
+    println!("PART 1: The inventory carrying the largest amounf of calories: {}", elf_inventory_max_calories);
+    println!("PART 2: Sum of the top 3 inventories: {}", elf_inventory_top3_calories);
 
-    println!("Sum of top 3 elves: {}", sum);
-}
-
-fn sum_elf_inventory(inventory: &Vec<i32>) -> i32 {
-    inventory.iter().sum()
+    Ok(())
 }
