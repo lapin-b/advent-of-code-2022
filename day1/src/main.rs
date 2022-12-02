@@ -2,15 +2,9 @@ use anyhow::Context;
 use itertools::Itertools;
 
 fn main() -> anyhow::Result<()>{
-    let file_name = match std::env::args().nth(1) {
-        Some(f) => f,
-        None => {
-            println!("Warn: No file passed as program argument. Will use the test file");
-            String::from("files/day1/test.txt")
-        }
-    };
+    let file_name = utils::get_file_from_argv("files/day1/test.txt");
 
-    let file_content = std::fs::read_to_string(file_name)?;
+    let file_content = std::fs::read_to_string(file_name.as_ref())?;
 
     let elf_inventories = file_content
         .split("\n\n")

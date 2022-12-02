@@ -14,7 +14,12 @@ version = "0.1.0"
 dependencies = [
  "anyhow",
  "itertools",
+ "utils",
 ]
+
+[[package]]
+name = "day2"
+version = "0.1.0"
 
 [[package]]
 name = "either"
@@ -30,3 +35,7 @@ checksum = "b0fd2260e829bddf4cb6ea802289de2f86d6a7a690192fbe91b3f46e0f2c8473"
 dependencies = [
  "either",
 ]
+
+[[package]]
+name = "utils"
+version = "0.1.0"
