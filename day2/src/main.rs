@@ -3,14 +3,14 @@ use std::io;
 use std::io::BufRead;
 use std::str::FromStr;
 
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
 enum GameMoves {
     Rock,
     Paper,
     Scissors
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Copy)]
 enum NeededRoundResult {
     Win,
     Lose,
@@ -86,7 +86,29 @@ impl RoundLine {
     }
 
     fn calculate_game_score_part2(&self) -> i32 {
-        todo!()
+        let round_points = match self.p2_needed_round_end {
+            NeededRoundResult::Win => 6,
+            NeededRoundResult::Lose => 0,
+            NeededRoundResult::Draw => 3,
+        };
+
+        let chosen_my_move = match self.p2_needed_round_end {
+            NeededRoundResult::Win => match self.adv_move {
+                GameMoves::Rock => GameMoves::Paper,
+                GameMoves::Paper => GameMoves::Scissors,
+                GameMoves::Scissors => GameMoves::Rock,
+            },
+
+            NeededRoundResult::Lose => match self.adv_move {
+                GameMoves::Rock => GameMoves::Scissors,
+                GameMoves::Paper => GameMoves::Rock,
+                GameMoves::Scissors => GameMoves::Paper,
+            },
+
+            NeededRoundResult::Draw => self.adv_move,
+        };
+
+        round_points + chosen_my_move.get_chosen_move_score()
     }
 }
 
