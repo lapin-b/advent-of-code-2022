@@ -10,18 +10,12 @@ enum GameMoves {
     Scissors
 }
 
-#[derive(Debug, Clone, Copy)]
-enum NeededRoundResult {
-    Win,
-    Lose,
-    Draw
-}
-
 impl FromStr for GameMoves {
     type Err = String;
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         match s {
+            // Part 1 was to interpret the 2nd column as our own move
             "A" | "X" => Ok(GameMoves::Rock),
             "B" | "Y" => Ok(GameMoves::Paper),
             "C" | "Z" => Ok(GameMoves::Scissors),
@@ -40,15 +34,33 @@ impl GameMoves {
     }
 }
 
-impl FromStr for NeededRoundResult {
+#[derive(Debug, Clone, Copy)]
+enum RoundResult {
+    Win,
+    Lose,
+    Draw
+}
+
+impl FromStr for RoundResult {
     type Err = String;
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         match s {
-            "X" => Ok(NeededRoundResult::Lose),
-            "Y" => Ok(NeededRoundResult::Draw),
-            "Z" => Ok(NeededRoundResult::Win),
+            // Part 2 was to interpret the second column as the needed outcome
+            "X" => Ok(RoundResult::Lose),
+            "Y" => Ok(RoundResult::Draw),
+            "Z" => Ok(RoundResult::Win),
             _ => Err(format!("Invalid needed game result {}", s))
+        }
+    }
+}
+
+impl RoundResult {
+    fn get_round_result_score(&self) -> i32 {
+        match self {
+            RoundResult::Win => 6,
+            RoundResult::Lose => 0,
+            RoundResult::Draw => 3
         }
     }
 }
@@ -56,59 +68,51 @@ impl FromStr for NeededRoundResult {
 #[derive(Debug, Clone)]
 struct RoundLine {
     adv_move: GameMoves,
-    p2_needed_round_end: NeededRoundResult,
+    p2_needed_round_end: RoundResult,
     p1_my_move: GameMoves,
 }
 
 impl RoundLine {
     fn calculate_game_score_part1(&self) -> i32 {
-        if self.p1_my_move == self.adv_move {
-            return 3;
-        }
-
-        match self.p1_my_move {
+        let round_result = match self.p1_my_move {
             GameMoves::Rock => match self.adv_move {
-                GameMoves::Paper => 0,
-                GameMoves::Scissors => 6,
-                _ => unreachable!(),
+                GameMoves::Paper => RoundResult::Lose,
+                GameMoves::Scissors => RoundResult::Win,
+                GameMoves::Rock => RoundResult::Draw,
             },
             GameMoves::Paper => match self.adv_move {
-                GameMoves::Rock => 6,
-                GameMoves::Scissors => 0,
-                _ => unreachable!(),
+                GameMoves::Rock => RoundResult::Win,
+                GameMoves::Scissors => RoundResult::Lose,
+                GameMoves::Paper => RoundResult::Draw,
             },
             GameMoves::Scissors => match self.adv_move {
-                GameMoves::Paper => 6,
-                GameMoves::Rock => 0,
-                _ => unreachable!(),
+                GameMoves::Paper => RoundResult::Win,
+                GameMoves::Rock => RoundResult::Lose,
+                GameMoves::Scissors => RoundResult::Draw,
             },
-        }
+        };
+
+        round_result.get_round_result_score() + self.p1_my_move.get_chosen_move_score()
     }
 
     fn calculate_game_score_part2(&self) -> i32 {
-        let round_points = match self.p2_needed_round_end {
-            NeededRoundResult::Win => 6,
-            NeededRoundResult::Lose => 0,
-            NeededRoundResult::Draw => 3,
-        };
-
         let chosen_my_move = match self.p2_needed_round_end {
-            NeededRoundResult::Win => match self.adv_move {
+            RoundResult::Win => match self.adv_move {
                 GameMoves::Rock => GameMoves::Paper,
                 GameMoves::Paper => GameMoves::Scissors,
                 GameMoves::Scissors => GameMoves::Rock,
             },
 
-            NeededRoundResult::Lose => match self.adv_move {
+            RoundResult::Lose => match self.adv_move {
                 GameMoves::Rock => GameMoves::Scissors,
                 GameMoves::Paper => GameMoves::Rock,
                 GameMoves::Scissors => GameMoves::Paper,
             },
 
-            NeededRoundResult::Draw => self.adv_move,
+            RoundResult::Draw => self.adv_move,
         };
 
-        round_points + chosen_my_move.get_chosen_move_score()
+        self.p2_needed_round_end.get_round_result_score() + chosen_my_move.get_chosen_move_score()
     }
 }
 
@@ -126,7 +130,7 @@ fn main() -> anyhow::Result<()> {
 
             RoundLine {
                 adv_move: GameMoves::from_str(adv_move).expect("Invalid move for adversary"),
-                p2_needed_round_end: NeededRoundResult::from_str(my_move_or_needed_round_end).expect("Invalid needed round end"),
+                p2_needed_round_end: RoundResult::from_str(my_move_or_needed_round_end).expect("Invalid needed round end"),
                 p1_my_move: GameMoves::from_str(my_move_or_needed_round_end).expect("Invalid move for my move"),
             }
         })
@@ -135,7 +139,7 @@ fn main() -> anyhow::Result<()> {
     // Part 1: Total score if everything goes to the provided plan
     let score_part1 = moves
         .iter()
-        .map(|line| line.p1_my_move.get_chosen_move_score() + line.calculate_game_score_part1())
+        .map(|line| line.calculate_game_score_part1())
         .sum::<i32>();
 
     let score_part2 = moves
