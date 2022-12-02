@@ -10,6 +10,13 @@ enum GameMoves {
     Scissors
 }
 
+#[derive(Debug, Clone)]
+enum NeededRoundResult {
+    Win,
+    Lose,
+    Draw
+}
+
 impl FromStr for GameMoves {
     type Err = String;
 
@@ -23,27 +30,43 @@ impl FromStr for GameMoves {
     }
 }
 
-#[derive(Debug, Clone)]
-struct GameLine {
-    adv_move: GameMoves,
-    my_move: GameMoves,
-}
-
-impl GameLine {
-    fn calculate_chosen_move_score(&self) -> i32 {
-        match self.my_move {
+impl GameMoves {
+    fn get_chosen_move_score(&self) -> i32 {
+        match self {
             GameMoves::Rock => 1,
             GameMoves::Paper => 2,
             GameMoves::Scissors => 3,
         }
     }
+}
 
+impl FromStr for NeededRoundResult {
+    type Err = String;
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        match s {
+            "X" => Ok(NeededRoundResult::Lose),
+            "Y" => Ok(NeededRoundResult::Draw),
+            "Z" => Ok(NeededRoundResult::Win),
+            _ => Err(format!("Invalid needed game result {}", s))
+        }
+    }
+}
+
+#[derive(Debug, Clone)]
+struct RoundLine {
+    adv_move: GameMoves,
+    p2_needed_round_end: NeededRoundResult,
+    p1_my_move: GameMoves,
+}
+
+impl RoundLine {
     fn calculate_game_score_part1(&self) -> i32 {
-        if self.my_move == self.adv_move {
+        if self.p1_my_move == self.adv_move {
             return 3;
         }
 
-        match self.my_move {
+        match self.p1_my_move {
             GameMoves::Rock => match self.adv_move {
                 GameMoves::Paper => 0,
                 GameMoves::Scissors => 6,
@@ -61,6 +84,10 @@ impl GameLine {
             },
         }
     }
+
+    fn calculate_game_score_part2(&self) -> i32 {
+        todo!()
+    }
 }
 
 fn main() -> anyhow::Result<()> {
@@ -73,11 +100,12 @@ fn main() -> anyhow::Result<()> {
             let moves = line.split_whitespace().collect::<Vec<_>>();
 
             let adv_move = *moves.get(0).expect("No adversary move present");
-            let my_move = *moves.get(1).expect("No own move present");
+            let my_move_or_needed_round_end = *moves.get(1).expect("No own move present");
 
-            GameLine {
+            RoundLine {
                 adv_move: GameMoves::from_str(adv_move).expect("Invalid move for adversary"),
-                my_move: GameMoves::from_str(my_move).expect("Invalid move for my move"),
+                p2_needed_round_end: NeededRoundResult::from_str(my_move_or_needed_round_end).expect("Invalid needed round end"),
+                p1_my_move: GameMoves::from_str(my_move_or_needed_round_end).expect("Invalid move for my move"),
             }
         })
         .collect::<Vec<_>>();
@@ -85,10 +113,16 @@ fn main() -> anyhow::Result<()> {
     // Part 1: Total score if everything goes to the provided plan
     let score_part1 = moves
         .iter()
-        .map(|line| line.calculate_chosen_move_score() + line.calculate_game_score_part1())
+        .map(|line| line.p1_my_move.get_chosen_move_score() + line.calculate_game_score_part1())
+        .sum::<i32>();
+
+    let score_part2 = moves
+        .iter()
+        .map(|line| line.calculate_game_score_part2())
         .sum::<i32>();
 
     println!("Part 1: score if everything goes to plan: {}", score_part1);
+    println!("Part 2: score if everything goes to plan: {}", score_part2);
 
     Ok(())
 }
