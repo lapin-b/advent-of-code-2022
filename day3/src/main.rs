@@ -5,7 +5,7 @@ use std::io::BufRead;
 
 use itertools::Itertools;
 
-struct ElfRucksak {
+struct ElfRucksack {
     // Part 1
     large_compartiment1: HashSet<char>,
     large_compartiment2: HashSet<char>,
@@ -14,7 +14,7 @@ struct ElfRucksak {
     bag_content: HashSet<char>,
 }
 
-impl ElfRucksak {
+impl ElfRucksack {
     fn new(contents: &str) -> Self {
         debug_assert_eq!(contents.len() % 2, 0);
         let compartiments = contents.split_at(contents.len() / 2);
@@ -35,10 +35,10 @@ impl ElfRucksak {
     }
 }
 
-impl std::fmt::Debug for ElfRucksak {
+impl std::fmt::Debug for ElfRucksack {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         f
-            .debug_struct("ElfRucksak")
+            .debug_struct("ElfRucksack")
             .field("bag_content", &self.bag_content.iter().join(""))
             .finish()
     }
@@ -59,10 +59,10 @@ fn main() -> anyhow::Result<()> {
     let rucksacks = file_content
         .lines()
         .map(Result::unwrap)
-        .map(|line| ElfRucksak::new(&line))
+        .map(|line| ElfRucksack::new(&line))
         .collect::<Vec<_>>();
 
-    // Part 1: Find the common items
+    // Part 1: Find the common items between compartiments of the bag
     let common_items_summed_priority = rucksacks
         .iter()
         .map(|sack| sack.common_item_in_compartiments())
@@ -71,22 +71,26 @@ fn main() -> anyhow::Result<()> {
 
     println!("Part 1: sum of priorities for the common items: {}", common_items_summed_priority);
 
-    // Part 2: Each group has three items, so can we chunk ?
+    // Part 2: Each group has three bags and one item in common between the three.
+    // The item in common determines the badge elves wear.
     let badges_priorities_sum = rucksacks
         .chunks(3)
+        // Make the chunk a bit easier to work with by separating the three members explicitely.
+        // This will panic if there are not exactly three items.
         .map(|group| (&group[0], &group[1], &group[2]))
+        // More set mathematics. This time it's a three-way intersection on hashmaps.
         .map(|(elf1_rucksack, elf2_rucksac, elf3_rucksack)| {
-            let intermediary_intersection = elf1_rucksack.bag_content
+            elf1_rucksack.bag_content
+                // First intersection between elf 1 and elf 2
                 .intersection(&elf2_rucksac.bag_content)
                 .copied()
-                .collect::<HashSet<_>>();
+                .collect::<HashSet<_>>()
 
-            let badge = intermediary_intersection
+                // Add elf 3 to the mix
                 .intersection(&elf3_rucksack.bag_content)
                 .copied()
                 .next()
-                .expect("At least one item should be common in the three bags");
-            badge
+                .expect("At least one item should be common in the three bags")
         })
         // Badges have been founds, time to assign the priorities like part 1
         .map(|badge| determine_item_priority(badge))
