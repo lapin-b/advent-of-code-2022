@@ -93,7 +93,7 @@ fn main() -> anyhow::Result<()> {
                 .expect("At least one item should be common in the three bags")
         })
         // Badges have been founds, time to assign the priorities like part 1
-        .map(|badge| determine_item_priority(badge))
+        .map(determine_item_priority)
         .sum::<i32>();
 
     println!("Part 2: Sum of badge stickers priorities: {}", badges_priorities_sum);

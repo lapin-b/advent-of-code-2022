@@ -10,8 +10,8 @@ fn main() -> anyhow::Result<()>{
         .split("\n\n")
         .map(|elf_inventory| {
             elf_inventory
-                .split("\n")
-                .map(|food_calories| i32::from_str_radix(food_calories, 10).unwrap())
+                .split('\n')
+                .map(|food_calories| food_calories.parse().unwrap())
                 .collect::<Vec<_>>()
         })
         .collect::<Vec<_>>();
@@ -26,7 +26,7 @@ fn main() -> anyhow::Result<()>{
         .collect_vec();
 
     // Part 1 wants the max calories among the elf inventories
-    let elf_inventory_max_calories = top_3.get(0).copied().context("No elf with largest inventory")?;
+    let elf_inventory_max_calories = top_3.first().copied().context("No elf with largest inventory")?;
     let elf_inventory_top3_calories = top_3.iter().sum::<i32>();
 
     println!("Top 3 elf inventories carrying the largest amount of calories: {:?}", top_3);

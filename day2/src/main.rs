@@ -125,7 +125,7 @@ fn main() -> anyhow::Result<()> {
         .map(|line| {
             let moves = line.split_whitespace().collect::<Vec<_>>();
 
-            let adv_move = *moves.get(0).expect("No adversary move present");
+            let adv_move = *moves.first().expect("No adversary move present");
             let my_move_or_needed_round_end = *moves.get(1).expect("No own move present");
 
             RoundLine {
