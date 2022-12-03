@@ -3,10 +3,15 @@ use std::fs;
 use std::io;
 use std::io::BufRead;
 
-#[derive(Debug)]
+use itertools::Itertools;
+
 struct ElfRucksak {
+    // Part 1
     large_compartiment1: HashSet<char>,
-    large_compartiment2: HashSet<char>
+    large_compartiment2: HashSet<char>,
+
+    // Part 2
+    bag_content: HashSet<char>,
 }
 
 impl ElfRucksak {
@@ -16,7 +21,8 @@ impl ElfRucksak {
 
         Self {
             large_compartiment1: compartiments.0.chars().collect(),
-            large_compartiment2: compartiments.1.chars().collect()
+            large_compartiment2: compartiments.1.chars().collect(),
+            bag_content: contents.chars().collect(),
         }
     }
 
@@ -26,6 +32,15 @@ impl ElfRucksak {
             .copied()
             .next()
             .expect("The instructions say that there's one item in common, found none")
+    }
+}
+
+impl std::fmt::Debug for ElfRucksak {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f
+            .debug_struct("ElfRucksak")
+            .field("bag_content", &self.bag_content.iter().join(""))
+            .finish()
     }
 }
 
@@ -55,6 +70,29 @@ fn main() -> anyhow::Result<()> {
         .sum::<i32>();
 
     println!("Part 1: sum of priorities for the common items: {}", common_items_summed_priority);
+
+    // Part 2: Each group has three items, so can we chunk ?
+    let badges_priorities_sum = rucksacks
+        .chunks(3)
+        .map(|group| (&group[0], &group[1], &group[2]))
+        .map(|(elf1_rucksack, elf2_rucksac, elf3_rucksack)| {
+            let intermediary_intersection = elf1_rucksack.bag_content
+                .intersection(&elf2_rucksac.bag_content)
+                .copied()
+                .collect::<HashSet<_>>();
+
+            let badge = intermediary_intersection
+                .intersection(&elf3_rucksack.bag_content)
+                .copied()
+                .next()
+                .expect("At least one item should be common in the three bags");
+            badge
+        })
+        // Badges have been founds, time to assign the priorities like part 1
+        .map(|badge| determine_item_priority(badge))
+        .sum::<i32>();
+
+    println!("Part 2: Sum of badge stickers priorities: {}", badges_priorities_sum);
 
     Ok(())
 }

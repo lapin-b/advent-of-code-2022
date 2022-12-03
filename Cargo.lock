@@ -30,6 +30,7 @@ name = "day3"
 version = "0.1.0"
 dependencies = [
  "anyhow",
+ "itertools",
  "utils",
 ]
 
