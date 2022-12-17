@@ -14,6 +14,10 @@ impl AssignmentBounds {
     pub fn fully_contains(&self, other: &Self) -> bool {
         self.start >= other.start && self.end <= other.end
     }
+
+    pub fn overlaps_with(&self, other: &Self) -> bool {
+        self.start <= other.end && self.end >= other.start
+    }
 }
 
 impl std::fmt::Display for AssignmentBounds {
@@ -66,5 +70,21 @@ fn main() {
         .filter(|pair| pair.0.fully_contains(&pair.1) || pair.1.fully_contains(&pair.0))
         .count();
 
+
+    let overlapping_count = assignment_pairs
+        .iter()
+        .inspect(
+            |pair|
+                println!(
+                    "Pair {} overlaps or is overlapped by {} ? -> {}",
+                    pair.0,
+                    pair.1,
+                    pair.0.overlaps_with(&pair.1) || pair.1.overlaps_with(&pair.0)
+                )
+        )
+        .filter(|pair| pair.0.overlaps_with(&pair.1) || pair.1.overlaps_with(&pair.0))
+        .count();
+
     println!("Part 1: {} ranges full contains the other", fully_contains_count);
+    println!("Part 2: {} ranges overlap each other", overlapping_count);
 }
