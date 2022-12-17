@@ -58,30 +58,12 @@ fn main() {
 
     let fully_contains_count = assignment_pairs
         .iter()
-        .inspect(
-            |pair|
-                println!(
-                    "Pair {} fully contains or is fully contained by {} ? -> {}",
-                    pair.0,
-                    pair.1,
-                    pair.0.fully_contains(&pair.1) || pair.1.fully_contains(&pair.0)
-                )
-        )
         .filter(|pair| pair.0.fully_contains(&pair.1) || pair.1.fully_contains(&pair.0))
         .count();
 
 
     let overlapping_count = assignment_pairs
         .iter()
-        .inspect(
-            |pair|
-                println!(
-                    "Pair {} overlaps or is overlapped by {} ? -> {}",
-                    pair.0,
-                    pair.1,
-                    pair.0.overlaps_with(&pair.1) || pair.1.overlaps_with(&pair.0)
-                )
-        )
         .filter(|pair| pair.0.overlaps_with(&pair.1) || pair.1.overlaps_with(&pair.0))
         .count();
 
